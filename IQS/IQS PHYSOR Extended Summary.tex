@@ -28,6 +28,7 @@
 
 \newcommand{\bs}[1]{\mathbf{#1}}
 \newcommand{\dd}{\mathrm{d}}
+\newcommand{\keff}{k_\textit{eff}}
 
 \newcommand{\be}{\begin{equation}}
 \newcommand{\ee}{\end{equation}}
@@ -66,14 +67,17 @@ Implementing IQS to Rattlesnake in INL’s MOOSE framework is an obvious goal fo
 \section{Background}
 The multi-group diffusion equation with delayed neutron precursors (DNP) is the first application of this IQS method and will be used to briefly describe IQS derivation:
 \begin{align}
-\frac{1}{v_g} \frac{\partial \phi_g }{\partial t} =& \sum_{g'=1}^G\left(\frac{1}{k_{eff}}\nu \Sigma_{fg'}(1-\beta)+\Sigma_{sg',g}\right) \phi_{g'} - \nonumber \\
-& \left( -\div D_g \grad  + \Sigma_{ag}  + \sum_{g'>g}^G\Sigma_{sg,g'} \right)\phi_g + \sum_{i=1}^I\chi_{g,i}\lambda_i C_i \quad 1 \le g \le G 
+\frac{1}{v_g} \frac{\partial \phi_g }{\partial t} =& 
+\frac{\chi_{p,g}}{\keff} \sum_{g'=1}^G \nu_{g'}(1-\beta_{g'}) \Sigma_{fg'} \phi_{g'} 
+-  \left( -\div D_g \grad  + \Sigma_{rg} \right) \phi_g  \nonumber \\
+&  + \sum_{g'\neq g}^G\Sigma_{s,g'\to g} \phi_{g'}  + \sum_{i=1}^I\chi_{g,i}\lambda_i C_i \ , \quad 1 \le g \le G 
 \end{align}
 \be
-\frac{dC_i}{dt} = \frac{1}{k_{eff}}\sum_{g=1}^G\beta_i\nu \Sigma_f \phi - \lambda_i C_i \quad 1 \le i \le I 
+\frac{dC_i}{dt} = \frac{1}{k_{eff}}\sum_{g=1}^G\beta_i\nu \Sigma_f \phi - \lambda_i C_i \ , \quad 1 \le i \le I 
 \ee
+with
 \be
-\beta = \sum_{i=1}^I \beta_i 
+\beta_g = \sum_{i=1}^I \beta_{i,g} 
 \ee
 Factorization is the most important step in the derivation of the IQS method, it is the basis of its existence.  The group-dependent flux in the above equations is factorized into amplitude (p) and shape (φ):
 \be
