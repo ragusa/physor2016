@@ -64,12 +64,15 @@
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-In recent years transient modeling of complex reactor geometries has become a desired prelude to testing.  However, transient modeling has always been especially computationally expensive. Even with the vast improvements in computing technology, current methods have been unbearably slow in real-world cases when retaining sufficient accuracy.  Therefore, methods that improve on computational speed significantly at minimal detriment to accuracy is highly desired.  In particular, the anticipated revitalization of Transient Reactor Testing (TREAT) Facility at Idaho National laboratory (INL) has brought significant attention and opportunity to transient modeling.  TREAT, which was operational from 1954 to 1994, was designed to test fuels by subjecting them to various degrees of neutron pulses, from minor transients to accident cases.  The Department of Energy (DOE) and INL have put substantial effort to developing the modeling architecture for TREAT.  This project addresses the enhancement of transient modeling in TREAT with an improved quasi-static (IQS) method.
+\tcr{Go straight to the point: TREAT testing resumption. The first sentence is a bit generic}
+In recent years transient modeling of complex reactor geometries has become a desired prelude to testing.  However, transient modeling has always been especially computationally expensive. Even with the vast improvements in computing technology, current methods have been unbearably slow in real-world cases when retaining sufficient accuracy.  Therefore, methods that improve on computational speed significantly at minimal detriment to accuracy is highly desired.  In particular, the anticipated revitalization \tcr{resumption} of Transient Reactor Testing (TREAT) Facility at Idaho National laboratory (INL) has brought significant attention and opportunity to transient modeling.  TREAT, which was operational from 1954 to 1994, was designed to test fuels by subjecting them to various degrees of neutron pulses, from minor transients to accident cases.  The Department of Energy (DOE) and INL have put substantial effort to developing the modeling architecture for TREAT.  This project addresses the enhancement of transient modeling in TREAT with an improved quasi-static (IQS) method.
 \\ \\
-The improved quasi-static (IQS) method is a transient spatial kinetics method that involves factorizing flux into space- and time-dependent components.  These components include the flux’s amplitude and shape. Amplitude is time-dependent, while the shape is both space- and time-dependent.  However, the impetus of the method is the assumption that the shape is only weakly dependent on time; therefore, the shape may not require computation at every time step, invoking the “quasi-static” nature.
+The improved quasi-static (IQS) method is a transient spatial kinetics method that involves factorizing flux into space- and time-dependent components.  These components include the flux amplitude and its shape. Amplitude is only time-dependent, while the shape is both space- and time-dependent.  However, the impetus of the method is the assumption that the shape is only weakly dependent on time; therefore, the shape may not require computation at every time step, but only on a macro-time steps. As opposed to other forms of 
+quasi-static approximations, the IQS method is not an approximation. The shape is updated consistently and
+the results may only differ than those one would obtain using a straight-forward temporal discretization int he sense that the time discretization error in the shape may be larger due to the use of a larger time-step size. 
+\tcr{need more references on IQS and some on TREAT. they will kill us without references}
 \\ \\
-Implementing IQS to Rattlesnake in INL’s MOOSE framework is an obvious goal for the project.  Rattlesnake has already been developing methods to be used for TREAT and, with careful planning, IQS can easily be added to the framework as an optional method for problems.  The rest of this summary will briefly describe the derivation of IQS, its current application to Rattlesnake, and anticipated results after further short-term applications.
+Implementing IQS to Rattlesnake in INL's MOOSE framework is an obvious goal for the project.  Rattlesnake has already been developing methods to be used for TREAT and, with careful planning, IQS can easily be added to the framework as an optional method for problems.  The rest of this summary will briefly describe the derivation of IQS, its current application to Rattlesnake, and anticipated results after further short-term applications.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,7 +80,10 @@ Implementing IQS to Rattlesnake in INL’s MOOSE framework is an obvious goal fo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\tcr{Personally, I would put all energy group indices s superscript. up to you\\}
+\tcr{Personally, I would put all energy group indices as superscript. up to you.\\}
+
+\tcr{why don't you just say: in this Section, we recall the equations for the IQS method, starting
+from the standard multigroup diffusion equations written below:\\}
 The multi-group diffusion equation with delayed neutron precursors (DNP) is the first application of this IQS method and will be used to briefly describe IQS derivation:
 \begin{align}
 \frac{1}{v_g} \frac{\partial \phi_g }{\partial t} =& 
@@ -92,22 +98,27 @@ with
 \be
 \beta = \sum_{i=1}^I \beta_{i} 
 \ee
-Factorization is the most important step in the derivation of the IQS method, it is the basis of its existence.  The group-dependent flux in the above equations is factorized into amplitude (p) and shape (φ):
+Factorization is the most important step in the derivation of the IQS method, it is the basis of its existence.  
+\tcr{hmmm. existence is technical paper. not my cup of tea. Just be a bit drier and just state things. 
+The factorization approach leads to a decomposition of the multigroup flux into the product of a time-dependent amplitude and a space-/time-dependent multigroup shape:}
+The group-dependent flux in the above equations is factorized into amplitude (p) and shape (φ):
 \be
 \phi_g(\vec{r},t)=p(t)\varphi_g(\vec{r},t)
 \ee
-In order to impose uniqueness between amplitude and shape, the following definition is made:
+In order to impose uniqueness \tcr{of the factorization, one imposes:}, between amplitude and shape, the following definition is made:
 \be
 \left(\phi_g^*,\frac{1}{v_g}\varphi_g\right)=constant
 \ee
-After some manipulation, the amplitude and shape can be solved for by two systems of equations.  The amplitude can be evaluated with an equation equivalent to the point reactor kinetics equation (PRKE):
+\tcr{wait a minute: you need to explain the paranthesis notation, preferably with both text and an equation:
+summation over energy groups and integration over space\\}
+After some manipulation, the amplitude and shape can be solved for by two systems of equations.  The amplitude can be obtained by solving the standard point reactor kinetics equations (PRKE):
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
 \ee
 \be
 \frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}-\bar{\lambda}_i\xi_i \quad 1 \le i \le I 
 \ee
-Where:
+where the functional coefficients are calculated using the shape function as follows:
 \be
 \frac{\rho}{\Lambda}=\sum_{g=1}^G\frac{ \left(\phi_g^*,\sum_{g'=1}^G\left\{\frac{1}{k_{eff}} \nu \Sigma_{fg'}+\Sigma_{sg',g}\right\}\varphi_{g'} -\left\{ -\div D_g \grad+\Sigma_{ag}+\sum_{g'>g}^G\Sigma_{sg,g'}\right\}\varphi_g\right)}{\left(\phi_g^*,\frac{1}{v_g}\varphi_g\right)}
 \ee
@@ -117,19 +128,23 @@ Where:
 \be
 \bar{\lambda}_i=\sum_{g=1}^G\frac{(\phi_g^*,\chi_{g,i}\lambda_iC_i)}{(\phi^*,\chi_{g,i}C_i)}
 \ee
-And the shape equation is similar to the diffusion equation itself:
+\tcr{likely missing 1/p in front of the DNP source term. double check}
+
+Finally, the shape equations are solved for the shape. The shape equations are similar to the orignal diffusion equations:
 \begin{align}
 \frac{1}{v_g}& \frac{\partial \varphi_g }{\partial t} = \sum_{g'=1}^G\left(\frac{1}{k_{eff}}\nu \Sigma_{fg'}(1-\beta)+\Sigma_{sg',g}\right) \varphi_{g'} - \nonumber \\
 & \left( -\div D_g \grad  + \Sigma_{ag}  + \sum_{g'>g}^G\Sigma_{sg,g'} + \frac{1}{v_g}\frac{1}{p}\frac{dp}{dt} \right)\varphi_g + \sum_{i=1}^I\chi_{g,i}\lambda_i C_i \quad 1 \le g \le G 
 \label{eq:shape}
 \end{align}
-However, these equations are coupled, the coefficients in the PRKE for amplitude are dependent on shape, and the shape equation has a kernel dependent on amplitude and its derivative.  However, computing this shape can become expensive, especially in two or three dimensions.  Subsequently, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations which is the root of IQS.  To visualize:
+However, the amplitude and shape equations form a system of coupled equations: the coefficients appearing in the PRKEs depend upon the shape solution while the shape equation has a kernel dependent on amplitude and its derivative.  Because solving for the shape can be expensive, especially in two or three dimensions, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations which is the root of IQS.  \tcr{This is depicted schematically in \fig{fig:IQS}.}To visualize:
 %
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{IQS_visualization.jpg}
-\caption{IQS method visualization}
+\caption{IQS method solution process}
+\label{fig:IQS}
 \end{figure}
 %
+\tcr{I am stopping here but you have a good idea now how to modify the rest. thanks!!!!\\}
 Additionally, to improve consistency and accuracy, each macro time step can be iterated so the best shape is used to compute power at the micro time steps.  This iteration process must converge the shape such that the uniqueness condition $(\frac{d}{dt}\left(\phi_g^*,\frac{1}{v_g}\varphi_g\right)=0)$ is preserved.
 
 \newpage
