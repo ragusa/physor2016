@@ -342,6 +342,105 @@ MOOSE, or Multiphysics Object-Oriented Simulation Environment, is a finite-eleme
 
 IQS derives its uniqueness from the executioner type; however, some additional changes needed to be carried out in the RATTLESNAKE/YAK action system in order to support IQS execution.   First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent flux equation, as seen in \eqt{eq:shape}.  To enable RATTLESNAKE to solve this shape equation in lieu of the standard diffusion equation, an additional removal kernel has to be instantiated to evaluate the quantity $\frac{1}{vp}\frac{dp}{dt}\varphi$ and added to FEM weak form  when the IQS executioner is selected.  Second, four postprocessors are created in order to calculate the PRKE parameters.  The parameter calculations were split into the following item: $\frac{\bar{\beta}_i}{\Lambda}$ numerator, $\bar{\lambda}_i$ numerator/denominator, $\frac{\rho}{\Lambda}/\frac{\bar{\beta}}{\Lambda}$ denominator, and $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator.  The first three are relatively simple, only relying on material properties and solution quantities.  The $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator requires the use of MOOSE's residual {\tt save\_in} feature, which saves the residual from a calculated kernel or boundary contribution in the shape evaluation to an auxiliary variable.  Finally, a user object was created to pull together all the postprocessor values and carryout the numerator/denominator divisions that were then passed to the executioner.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Precursor Integration}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This section presents two different time-integration methods to solve coupled IQS shape + precursor equations, recalled below
+using, for simplicity, a single neutron group and a single precursor group.
+
+\be
+\frac{1}{v}\frac{\partial\varphi}{\partial t}=\nu\Sigma_f(1-\beta)\varphi-\left(-\div D \grad + \Sigma_a + \frac{1}{v}\frac{1}{p}\frac{dp}{dt}\right)\varphi+\frac{1}{p}\lambda C 
+\ee
+\be
+\frac{dC}{dt} = \beta\nu \Sigma_f \varphi p - \lambda C
+\ee
+
+First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. 
+However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. 
+Instead, one may discretize in time the shape equation, which typically requires the knowledge of the
+precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or anlaytical,
+of the precursors ODE. This document will discuss two techniques for solving the precursor equation.  First is a time discretization method that is currently being implemented in YAK.  The second is a analytical integration of the precursors, the latter method has proven to be more beneficial for IQS convergence.
+
+
+\subsubsection{Time Discretization using the Theta Method}
+
+A fairly simple way to evaluate the precursor equation is to employ the $\theta$-scheme ($0\le\theta\le1$),
+explicit when $\theta=0$, implicit when $\theta=1$, and Crank-Nicholson when $\theta=1/2$).
+Generally, if there is a function $u$ whose governing equation is $\frac{du}{dt}=f(u,t)$,
+then the $\theta$-discretization is
+
+\be
+\frac{u^{n+1}-u^n}{\Delta t}=(1-\theta)f(u^n,t) + \theta f(u^{n+1},t) \,.
+\ee
+
+Applying this to the precursor equation:
+
+\be
+\frac{C^{n+1}-C^n}{\Delta t}=(1-\theta)\beta S_f^np^n-(1-\theta)\lambda C^n + \theta\beta S_f^{n+1}p^{n+1}-\theta\lambda C^{n+1}
+\ee
+
+Where $S_f$ is the fission source equivalent for shape:
+
+\be
+S_f^n=(\nu\Sigma_f)^n\varphi^n
+\ee
+
+Rearranging to solve for the precursor at the end of the time step yields
+
+\be
+C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}S_f^n p^n +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}S_f^{n+1} p^{n+1}
+\ee
+Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$
+(and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).
+Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated. YAK currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
+
+
+\subsubsection{Analytical Integration}
+
+Through prototyping, it has been found that neither implicit nor Crank-Nicholson time discretization of precursors are preferable methods for solving the shape equation in IQS.  It has been found that these discretizations result in a lack of convergence of the shape over the IQS iteration process.  In order to remedy the error, a analytical representation of the precursors was implemented in the prototype and the shape solution was able to converge (the normalization constant of the IQS method can be preserved to $10^{-10}$ while the theta-scheme only allowed convergence in the normalization factor to about $10^{-3}$).  The following section shows how this method was implemented in the prototype and the desired implementation for YAK.
+
+Using an exponential operator, the precursor equation can be analytically solved for:
+
+\be
+\int_{t_n}^{t_{n+1}} C(t')e^{\lambda t'} dt' = \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{\lambda t'}dt'
+\ee
+
+yielding
+
+\be
+C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
+\ee
+
+Because $\beta$ and $S_f$ being integrated are not known continuously over the time step, they can be interpolated linearly over the macro step.  Such that:
+
+\be
+h(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}h^n  + \frac{t-t_n}{t_{n+1}-t_n}h^{n+1}  \quad t_n \le t \le t_{n+1}
+\ee
+% We let $\ell_n(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}$ and  $\ell_{n+1}(t) = \frac{t-t_n}{t_{n+1}-t_n}$ for simplicity. 
+
+However, for the PRKE solve, we do have a very accurate representation of $p(t')$ over the time interval $[t_n,t_{n+1}]$.
+
+Finally, we have the final expression for the analytical value for $C^{n+1}$:
+
+\be
+C^{n+1} = C^n e^{-\lambda \Delta t} 
++ \left(a_3\beta^{n+1}+a_2\beta^n\right)S_f^{n+1}
++ \left(a_2\beta^{n+1}+a_1\beta^n\right)S_f^n 
+\ee
+
+Where the integration coefficients are defined as:
+
+\begin{align}
+&a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&a_2= \int_{t_n}^{t_{n+1}}\frac{(t'-t_n)(t_{n+1}-t')}{(\Delta t)^2}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&a_3 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt'
+\end{align}
+
+The amplitude $(p)$ is included in the integration coefficient because it has been highly accurately calculated in the micro step scheme, so a piecewise interpolation between those points can be done to maximize accuracy.  
+
+The prototype code uses Matlab software to interpolate the amplitude between micro steps and a quadrature integration for the coefficients.  So the challenge for YAK is to replicate this procedure: passing the amplitude vector to the DNP auxkernel, interpolating it, and integrating the coefficients. 
+
+
 %------------------------------------------------------------------------------
 \subsection{Executioner}
 
