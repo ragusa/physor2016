@@ -1,0 +1,15 @@
+%-------------------------------------------------------------------------------
+% W.F.G. van Rooijen, University of Fukui, October 2015
+% README file for the PHYSOR2016 LaTeX template
+%-------------------------------------------------------------------------------
+
+I was requested to remove all headers and footers from the LaTeX template for
+PHYSOR2016. As a result, an update of the stylefile was needed, as well as a 
+modification of the LaTeX template. Please use the updated versions.
+
+If you have written your abstract with the "physor2016.sty" stylefile, then the
+only thing to do is to extract the new version of physor2016.sty from the ZIP
+archive and replace the existing file on your computer. Note that the style
+file for BibTex ("physor2016.bst") has not changed.
+
+Wilfred van Rooijen

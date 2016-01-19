@@ -1,0 +1,158 @@
+%------------------------------------------------------------------------------
+% PGF/TikZ diagram of the Monju core. The basic approach is as follows:
+% - the SAs are represented by nodes with a hexagonal shape
+% - the pitch between SAs determines the size of the hexagons (using the inner
+%   sep parameter)
+% - for the major SA types there is a predefined color
+% - the core has 60 degree symmetry, so use the rotation capability of PGF/TikZ
+%   to determine the location of each SA
+% - draw the diagram of the basic regions first
+% - then overlay the "special cases"
+% - LaTeX is not very good for calculations, and as a result, this kind of dia-
+%   gram takes some time to compile (for example, each SA position must be
+%   calculated, then a hexagon needs to be calculated around that position, etc)
+%------------------------------------------------------------------------------
+
+\begin{tikzpicture}[scale=1,
+  default hexagon/.style={regular polygon, regular polygon sides=6, draw, 
+  inner sep=0.07cm, fill=white, draw=white},
+  reflector/.style={default hexagon, fill=blue!50!white, draw=blue!50!black},
+  blanket/.style={default hexagon, fill=green!50!white, draw=green!50!black},
+  outer fuel/.style={default hexagon, fill=red!50!white, draw=red!50!black},
+  inner fuel/.style={default hexagon, fill=orange!70!white, draw=orange!50!black},
+  ccr/.style={default hexagon, fill=yellow!90!white, draw=yellow!50!black},
+  bcr/.style={default hexagon, fill=pink!90!white, draw=pink!50!black},
+  fcr/.style={default hexagon, fill=purple!90!white, draw=purple!50!black},
+  source/.style={default hexagon, fill=gray!50!white, draw=gray!50!black}
+  ]
+
+  \pgfmathsetmacro{\pitch}{0.2}
+
+  %----------------------------------------------------------------------------
+  % First ring
+  %----------------------------------------------------------------------------
+  \foreach \i in {0,...,5}{
+    \node[inner fuel] at (\i * 60 + 30: \pitch) {} ;
+  }
+  
+  %----------------------------------------------------------------------------
+  % Remainder of inner fuel region
+  %----------------------------------------------------------------------------
+  \foreach \r in {2,...,6}{
+    \foreach \i in {0,...,5}{
+      \node[inner fuel] at (\i * 60 + 30: \r * \pitch) {} ;
+      \pgfmathsetmacro{\rmo}{\r-1}
+      \foreach \rr in {1,...,\rmo}{
+        \draw ++(\i * 60 + 30: \r * \pitch)  +(\i * 60 + 150: \rr * \pitch) 
+          node[inner fuel] {} ;      
+      }
+    }
+  }
+
+  %----------------------------------------------------------------------------
+  % Outer fuel region
+  %----------------------------------------------------------------------------
+  \foreach \r in {7,8}{
+    \foreach \i in {0,...,5}{
+      \node[outer fuel] at (\i * 60 + 30: \r * \pitch) {} ;
+      \pgfmathsetmacro{\rmo}{\r-1}
+      \foreach \rr in {1,...,\rmo}{
+        \draw ++(\i * 60 + 30: \r * \pitch)  +(\i * 60 + 150: \rr * \pitch) 
+          node[outer fuel] {} ;      
+      }
+    }
+  }
+
+  %----------------------------------------------------------------------------
+  % Blanket region
+  %----------------------------------------------------------------------------
+  \foreach \r in {9,...,11}{
+    \foreach \i in {0,...,5}{
+      \node[blanket] at (\i * 60 + 30: \r * \pitch) {} ;
+      \pgfmathsetmacro{\rmo}{\r-1}
+      \foreach \rr in {1,...,\rmo}{
+        \draw ++(\i * 60 + 30: \r * \pitch)  +(\i * 60 + 150: \rr * \pitch) 
+          node[blanket] {} ;      
+      }
+    }
+  }
+
+  %----------------------------------------------------------------------------
+  % Reflector region
+  %----------------------------------------------------------------------------
+  \foreach \r in {12,...,14}{
+    \foreach \i in {0,...,5}{
+      \node[reflector] at (\i * 60 + 30: \r * \pitch) {} ;
+      \pgfmathsetmacro{\rmo}{\r-1}
+      \foreach \rr in {1,...,\rmo}{
+        \draw ++(\i * 60 + 30: \r * \pitch)  +(\i * 60 + 150: \rr * \pitch) 
+          node[reflector] {} ;      
+      }
+    }
+  }
+
+  %----------------------------------------------------------------------------
+  % Reflector region last ring, missing 6 assemblies
+  %----------------------------------------------------------------------------
+  \foreach \r in {15,...,15}{
+    \foreach \i in {0,...,5}{
+      \pgfmathsetmacro{\rmo}{\r-1}
+      \foreach \rr in {1,...,\rmo}{
+        \draw ++(\i * 60 + 30: \r * \pitch)  +(\i * 60 + 150: \rr * \pitch) 
+          node[reflector] {} ;      
+      }
+    }
+  }
+
+  %----------------------------------------------------------------------------
+  % Neutron sources (2 SAs)
+  %----------------------------------------------------------------------------
+  \node[source] at (90:  9 *\pitch) {} ;
+  \node[source] at (270:  9 *\pitch) {} ;
+
+  %----------------------------------------------------------------------------
+  % 6 reflectors in blanket region
+  %----------------------------------------------------------------------------
+  \foreach \i in {0,...,5}{
+    \node[reflector] at (\i * 60 + 30: 11 * \pitch) {} ;
+  }
+
+  %----------------------------------------------------------------------------
+  % 10 coarse control rods
+  %----------------------------------------------------------------------------
+  \node[ccr] at (0,0) {} ;
+  \draw ++(90: 2 * \pitch)  +(30: \pitch) node[ccr] {} ; 
+  \draw ++(90: 4 * \pitch)  +(30: 2 * \pitch) node[ccr] {} ; 
+  \draw ++(90: -1 * \pitch)  +(-30: 2 * \pitch) node[ccr] {} ; 
+  \draw ++(90: -2 * \pitch)  +(-30: 4 * \pitch) node[ccr] {} ; 
+  \draw ++(90: -2 * \pitch)  +(150: 3 * \pitch) node[ccr] {} ; 
+  \draw ++(90: -4 * \pitch)  +(150: 6 * \pitch) node[ccr] {} ; 
+  \draw ++(90: 2 * \pitch)  +(150: 4 * \pitch) node[ccr] {} ; 
+  \draw ++(90: -2 * \pitch)  +(30: 6 * \pitch) node[ccr] {} ; 
+  \draw ++(90: -6 * \pitch)  +(150: 2 * \pitch) node[ccr] {} ; 
+
+  %----------------------------------------------------------------------------
+  % 6 backup rods
+  %----------------------------------------------------------------------------
+  \draw ++(90: 4 * \pitch)  +(150: \pitch) node[bcr] {} ; 
+  \draw ++(90: \pitch)  +(150: 2 * \pitch) node[bcr] {} ; 
+  \draw ++(90: -3 * \pitch)  +(150: \pitch) node[bcr] {} ; 
+  \draw ++(90: -5 * \pitch)  +(150: 4 * \pitch) node[bcr] {} ; 
+  \draw ++(90: -1 * \pitch)  +(30: 3 * \pitch) node[bcr] {} ; 
+  \draw ++(90: -4 * \pitch)  +(30: 5 * \pitch) node[bcr] {} ; 
+
+  %----------------------------------------------------------------------------
+  % 3 fine control rods
+  %----------------------------------------------------------------------------
+  \draw ++(90: 1 * \pitch)  +(30: 4 * \pitch) node[fcr] {} ; 
+  \draw ++(90: -1 * \pitch)  +(150: 5 * \pitch) node[fcr] {} ; 
+  \draw ++(90: -5 * \pitch)  +(30: \pitch) node[fcr] {} ; 
+
+  \node[](AA) at ( -3.3,  0 ) {\SI{180}{\degree}};
+  \node[](BB) at (  3.3,  0 ) {\SI{0}{\degree}} ;
+  \node[](CC) at (   0, 3.6 ) {\SI{90}{\degree}}  ;
+  \node[](DD) at (   0,-3.6 ) {\SI{270}{\degree}} ;
+  \draw[thick] (AA) -- (BB) ;
+  \draw[thick] (CC) -- (DD) ;
+\end{tikzpicture}
+
