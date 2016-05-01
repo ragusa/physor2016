@@ -23,8 +23,9 @@
 \usepackage{tabls}
 \usepackage{afterpage}
 
-%\usepackage[]{media9}
-\usepackage{multimedia}
+\usepackage{ocgx2}
+\usepackage[]{media9}
+%\usepackage{multimedia}
 
 \usepackage{amsthm}
 \usepackage{amssymb}
@@ -45,9 +46,8 @@
 \usepackage{cancel}
 
 \usepackage{tikz}
+%\usepackage{booktabs}
 
-\usepackage{multimedia}
-%\usepackage[]{media9}
 %-----------------------------------------------------------
 % NEW  DEFINITIONS
 %
@@ -325,8 +325,8 @@
 
 \title{Improved Quasi-Static Method in Rattlesnake}
 
-\author{Zachary M. Prince, Jean C. Ragusa}
-\institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX}
+\author{Zachary M. Prince$^*$, Jean C. Ragusa$^*$, Yaqi Wang$^{\dagger}$}
+\institute{$^*$Department of Nuclear Engineering, Texas A\&M University, College Station, TX \\ $^\dagger$Idaho National Lab , Idaho Falls, ID}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -338,7 +338,7 @@
 
 %-------------------------------------------------------------------
 \begin{frame}
-%\vspace{-1.5cm}
+\vspace{-1.5cm}
 	\begin{figure}[t]
 		\centering
 			\includegraphics[width=.45\textwidth]{figures/Treat_core_view.png}
@@ -346,7 +346,7 @@
 \vspace{-0.5cm}
 \titlepage
 \vspace{-0.5cm}
-\small{email: {\ragusa} }
+\small{email: {\prince} }
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -392,9 +392,9 @@ Decomposition of the multigroup flux into the product of a time-dependent \tcr{a
 
 \begin{itemize}
 \item 
-Factorization is \textbf{not} an approximation
+Factorization is \textbf{not} an approximation.
 \item
-Note that $\tcr{p(t)}$ and $\tcb{\varphi^g(\vec{r},t)}$ are not unique 
+Note that $\tcr{p(t)}$ and $\tcb{\varphi^g(\vec{r},t)}$ are not unique. 
 %\[
 %\phi= \tcr{p} \times \tcb{\psi} = \tcr{\frac{p}{a}} \times \tcb{\left( a \psi \right)}
 %\]
@@ -431,7 +431,7 @@ Implementing factorization and solving for $\tcb{\varphi^g}$:
 \ben
 \item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \tcb{\psi^g}$
 \item Delayed neutron source term scaled by $\tcr{\frac{1}{p}}$
-\item The delayed fission source in the precursor equation is scaled by \tcr{p}
+\item The delayed fission source in the precursor equation scaled by \tcr{p}
 \een
 \end{block}
 
@@ -601,7 +601,7 @@ These empirical criteria must be followed by a renormalization before starting t
 \begin{frame}{IQS Predictor-Corrector}
 
 %\begin{block}{IQS P-C Linearizes the System}
-IQS P-C liberalizes the system by avoiding a \tcb{shape} evaluation: 
+IQS P-C linearizes the system by avoiding a \tcb{shape} evaluation: 
 \ben
 \item Evaluate multigroup diffusion equation to get predicted flux $\phi_{n+1}^{g,\tcr{pred}}$
 \item Scale predicted flux to obtain \tcb{shape}:
@@ -616,7 +616,7 @@ IQS P-C liberalizes the system by avoiding a \tcb{shape} evaluation:
 \]
 \een
 
- Advantage: No IQS iteration is necessary \\
+ Advantage: No IQS nonlinear iteration is necessary \\
  Disadvantage: Assumes $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)$ is inherently constant \\
 \vspace{2mm}
 \small \tcm{Note: The PRKE parameters can be computed using flux since the amplitude is in the numerator and denominator of each one. So Step 2 is unnecessary if the corrected flux is solved with}:
@@ -829,29 +829,51 @@ Four action systems \tcr{$\ne$} four times the work!
 %-------------------------------------------------------------------
 \begin{frame}{1D Test Case}
 
-%\begin{figure}[h]
-%\includegraphics[width=\linewidth]{figures/twigl_geom.png}
-%\end{figure}
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{figures/1D_geometry.png}
+\end{figure}
+
+  \begin{columns}
+    \column{.5\textwidth}
+       \includemedia[addresource=1D_flux_profile.flv, activate=pageopen, deactivate=pageclose, width=5cm, height=5cm, flashvars={source=1D_flux_profile.flv & autoPlay=true & loop=true }]{}{VPlayer.swf}
+    \column{.5\textwidth}
+      \includemedia[addresource=1D_power_profile.flv, activate=pageopen, deactivate=pageclose, width=5cm, height=5cm, flashvars={source=1D_power_profile.flv & autoPlay=true & loop=true }]{}{VPlayer.swf}
+  \end{columns}
+  
+%\begin{block}{}
+%\bi
+%\item Control rod withdrawal in regions 2 and 3
+%\item Control rod insertion in region 4
+%\ei
+%\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
 
-%-------------------------------------------------------------------
-\begin{frame}{1D Flux and Power Profile}
-
-\end{frame}
-%-------------------------------------------------------------------
+%%-------------------------------------------------------------------
+%\begin{frame}{1D Flux and Power Profile}
+%
+%%\begin{center}
+%%\movie[width=5cm,height=4cm,showcontrols=true,poster]{IQS}{1D_flux_profile.avi}
+%%\movie[width=5cm,height=4cm,showcontrols=true,poster]{Flux}{1D_power_profile.avi}
+%%\end{center}
+%\end{frame}
+%%-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
 \begin{frame}{1D Error Convergence}
-%
-%Relative error versus \# of linear iterations: \\
-%\footnotesize{\underline{Note:} saturation due to ref. solution not (yet) accurate enough}
-%
-%\begin{figure}[h]
-%\includegraphics[width=0.88\linewidth]{figures/twigl_convergence_iqs.png}
-%\end{figure}
-%
+
+\begin{columns}
+\column{0.6\textwidth}
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{figures/1D_dt.jpg}
+\end{figure}
+\column{0.6\textwidth}
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{figures/1D_lin.jpg}
+\end{figure}
+\end{columns}
+
 \end{frame}
 %-------------------------------------------------------------------
 
@@ -862,30 +884,28 @@ Four action systems \tcr{$\ne$} four times the work!
 
 %-------------------------------------------------------------------
 \begin{frame}{TWIGL Benchmark}
-
-\begin{figure}[h]
-\includegraphics[width=\linewidth]{figures/twigl_geom.png}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{TWIGL Flux and Power Profile}
+  \begin{columns}
+    \column{.5\textwidth}
+	\begin{figure}[h]
+	\includegraphics[width=\linewidth]{figures/twigl_geom.png}
+	\end{figure}
+	\column{0.5\textwidth}
+	\includemedia[addresource=TWIGL_flux_profile.flv, activate=pageopen, deactivate=pageclose, width=5cm, height=5cm, flashvars={source=TWIGL_flux_profile.flv & autoPlay=true & loop=true }]{}{VPlayer.swf} \\ \vspace{-20mm}
+	\includemedia[addresource=TWIGL_power_profile.flv, activate=pageopen, deactivate=pageclose, width=5cm, height=5cm, flashvars={source=TWIGL_power_profile.flv & autoPlay=true & loop=true }]{}{VPlayer.swf}
+  \end{columns}
 
 \end{frame}
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
 \begin{frame}{TWIGL Error Convergence}
-%
-%Relative error versus \# of linear iterations: \\
-%\footnotesize{\underline{Note:} saturation due to ref. solution not (yet) accurate enough}
-%
-%\begin{figure}[h]
-%\includegraphics[width=0.88\linewidth]{figures/twigl_convergence_iqs.png}
-%\end{figure}
-%
+
+\centering
+\begin{figure}[h]
+\hspace*{-14mm} \includegraphics[width=0.55\paperwidth]{figures/TWIGL_ramp_dt.jpg}
+\hspace*{-6mm}\includegraphics[width=0.55\paperwidth]{figures/TWIGL_ramp_lin.jpg}
+\end{figure}
+
 \end{frame}
 %-------------------------------------------------------------------
 
@@ -896,9 +916,9 @@ Four action systems \tcr{$\ne$} four times the work!
 %-------------------------------------------------------------------
 \begin{frame}{LRA Benchmark}
 
-%\begin{figure}[h]
-%\includegraphics[width=\linewidth]{figures/twigl_geom.png}
-%\end{figure}
+\begin{figure}[h]
+\includegraphics[height=0.8\textheight]{figures/lra_geom.png}
+\end{figure}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -906,63 +926,26 @@ Four action systems \tcr{$\ne$} four times the work!
 %-------------------------------------------------------------------
 \begin{frame}{LRA Flux, Power, and Temperature Profile}
 
+  \begin{columns}
+	\vspace{100mm}
+	\column{0.6\textwidth}
+	\includemedia[addresource=LRA_flux_profile.flv, activate=pageopen, deactivate=pageclose, width=6cm, height=6cm, flashvars={source=LRA_flux_profile.flv & autoPlay=true & loop=true }]{}{VPlayer.swf}
+	\column{0.6\textwidth}
+	\includemedia[addresource=LRA_power_profile.flv, activate=pageopen, deactivate=pageclose, width=5cm, height=5cm, flashvars={source=LRA_power_profile.flv & autoPlay=true & loop=true }]{}{VPlayer.swf}
+  \end{columns}
+
 \end{frame}
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
 \begin{frame}{LRA Error Convergence}
-%
-%Relative error versus \# of linear iterations: \\
-%\footnotesize{\underline{Note:} saturation due to ref. solution not (yet) accurate enough}
-%
-%\begin{figure}[h]
-%\includegraphics[width=0.88\linewidth]{figures/twigl_convergence_iqs.png}
-%\end{figure}
-%
+
+\begin{figure}[h]
+\includegraphics[height=0.8\textheight]{figures/lra_dt.jpg}
+\end{figure}
+
 \end{frame}
 %-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-%\begin{frame}{TWIGL:  Timing}
-%
-%
-%\begin{block}{Hot off the press: CPU time}
-%
-%\begin{table}[h]
-%\begin{center}
-%\begin{tabular}{|c|c|}
-%\hline 
-%Method   &  CPU (s)  \\ \hline 
-%IQS      &  205.2    \\ \hline 
-%standard &  789.5    \\ \hline 
-%\end{tabular}
-%\end{center}
-%\end{table}
-%
-%\begin{itemize}
-%\item
-%IQS is about 4 times faster than the standard approach for the same macro time step size.
-%\item
-%Additional gains are expected when time-step control will be implemented (as larger time steps may be taken for the shape equations)
-%\end{itemize}
-%
-%\end{block}
-%
-%\end{frame}
-%%-------------------------------------------------------------------
-
-%\begin{frame}{TWIGL:  Shape and flux movies (thermal group)}
-%  \begin{columns}
-%    \column{.5\textwidth}
-%       \includemedia[addresource=ndiff_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6cm, height=5cm, flashvars={source=ndiff_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
-%    \column{.5\textwidth}
-%      \includemedia[addresource=iqs_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6cm, height=5cm, flashvars={source=iqs_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
-%  \end{columns}
-%%\begin{center}
-%%\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{IQS}{iqs_twigl_ramp_03.mpg}
-%%\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{Flux}{ndiff_twigl_ramp_03.mpg}
-%%\end{center}
-%\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1001,7 +984,6 @@ Four action systems \tcr{$\ne$} four times the work!
 
 \begin{block}{In progress}
 \bi
-\item Rattlesnake documentation
 \item Time step adaptation/control
 \ei
 \end{block}
