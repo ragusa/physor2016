@@ -371,6 +371,7 @@
 %-------------------------------------------------------------------
 \begin{frame}{Time-dependent Multigroup Diffusion}
 
+\vspace{-3mm}
 
 \begin{block}{Group Fluxes $\phi^g$ $(1 \le g \le G )$ with Precursors $C_i$ $(1 \le i \le I)$}
 \begin{align*}
@@ -601,7 +602,7 @@ These empirical criteria must be followed by a renormalization before starting t
 \begin{frame}{IQS Predictor-Corrector}
 
 %\begin{block}{IQS P-C Linearizes the System}
-IQS P-C linearizes the system by avoiding a \tcb{shape} evaluation: 
+IQS P-C linearizes the system and avoids iterations on the \tcb{shape}: 
 \ben
 \item Evaluate multigroup diffusion equation to get predicted flux $\phi_{n+1}^{g,\tcr{pred}}$
 \item Scale predicted flux to obtain \tcb{shape}:
@@ -977,8 +978,8 @@ Four action systems \tcr{$\ne$} four times the work!
 \bi
 \item Complete IQS and IQS P-C Implementation in Rattlesnake
 \item 1D Test case to verify error convergence
-\item TWIGL dynamics benchmark (neutronics only)
-\item LRA kinetics benchmark (temperature feedback)
+\item TWIGL kinetics  benchmark (neutronics only)
+\item LRA dynamics benchmark (temperature feedback)
 \ei
 \end{block}
 
